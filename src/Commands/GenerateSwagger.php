@@ -19,7 +19,7 @@ class GenerateSwagger extends Command
 
         error_reporting(0);
 
-        $generator->setProcessors([...$generator->getProcessors(),new Processor]);
+        $generator->setProcessors([...$generator->getProcessors()]);
 
         $p = $generator->generate([app_path()]);
 
