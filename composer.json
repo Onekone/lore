@@ -1,0 +1,28 @@
+{
+    "name": "onekone/lore",
+    "description": "Helper plugin for documenting Laravel projects",
+    "type": "library",
+    "require": {
+        "zircote/swagger-php": "^4.0",
+        "php": ">=8.1",
+        "illuminate/support": "^10|^11"
+    },
+    "autoload": {
+        "psr-4": {
+            "Onekone\\Lore\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Onekone\\Lore\\LoreSwaggerProvider"
+            ]
+        }
+    },
+    "authors": [
+        {
+            "name": "onekone",
+            "email": "alexs0929@gmail.com"
+        }
+    ]
+}
