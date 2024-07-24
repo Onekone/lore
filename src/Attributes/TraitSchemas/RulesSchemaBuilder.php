@@ -114,8 +114,9 @@ trait RulesSchemaBuilder
     {
         foreach ($rules as $rule) {
 
-            [$ruleStr, $ruleArgStr] = explode(':', $rule) + [''];
-            $ruleArgs = explode(',', $ruleString[1] ?? '');
+            $ruleStringArray = explode(':', $rule);
+            [$ruleStr, $ruleArgStr] = [$ruleStringArray[0] ?? '', $ruleStringArray[1] ?? ''];
+            $ruleArgs = explode(',', $ruleArgStr ?? '');
 
             switch ($ruleStr) {
                 case 'nullable':
