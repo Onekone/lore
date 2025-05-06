@@ -3,7 +3,8 @@
 namespace Onekone\Lore\Attributes\TraitSchemas;
 
 use Illuminate\Support\Arr;
-use Illuminate\Validation\Rules\Unique;
+use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationRuleParser;
 use OpenApi\Attributes as OA;
 use OpenApi\Generator;
 
@@ -26,7 +27,9 @@ trait RulesSchemaBuilder
         }
 
         $baseArr = [];
-        return $this->buildPropertiesList($rulesArray ?? [], $baseArr);
+        $r = $this->buildPropertiesList($rulesArray ?? [], $this);
+
+        return $r;
     }
 
     protected function array_undot($dottedArray)
@@ -34,17 +37,17 @@ trait RulesSchemaBuilder
         $array = [];
         foreach ($dottedArray as $key => $value) {
             if (is_array($value)) {
-                Arr::set($array, $key . '.?', $value);
+                Arr::set($array, $key . '.'.self::RAW, $value);
             }
         }
         foreach ($dottedArray as $key => $value) {
-            if (!Arr::get($array, $key . '.?', false)) {
+            if (!Arr::get($array, $key . '.'.self::RAW, false)) {
                 Arr::set($array, $key, $value);
             }
         }
         foreach ($dottedArray as $key => $value) {
             if (is_array(Arr::get($array, $key)) && !is_array($value)) {
-                Arr::set($array, $key . '.!', $value);
+                Arr::set($array, $key . '.'.self::SELF, $value);
             }
         }
         return $array;
@@ -55,7 +58,7 @@ trait RulesSchemaBuilder
      * @param class-string $schemaType Имя класса схемы
      * @return mixed
      */
-    protected function buildPropertiesList($properties, &$baseArr = null)
+    protected function buildPropertiesList($properties, &$baseArr)
     {
         $newProps = [];
 
@@ -67,8 +70,8 @@ trait RulesSchemaBuilder
             ];
 
             $items = $property[self::ITEMS] ?? null;
-            $raw = $property[self::RAW] ?? null;
-            $self = $property[self::SELF] ?? null;
+            $raw   = $property[self::RAW] ?? null;
+            $self  = $property[self::SELF] ?? null;
 
             if (is_array($property) && !$raw) {
                 if ($items) {
@@ -95,6 +98,11 @@ trait RulesSchemaBuilder
             if (is_array($property)) {
                 $rules = [...explode('|', $self), ...$rules];
             }
+            foreach ($rules as $k => $v) {
+                if (!$v) {
+                    unset($rules[$k]);
+                }
+            }
 
             $this->parseRules($rules, $key, $newProp, $baseArr);
 
@@ -110,15 +118,13 @@ trait RulesSchemaBuilder
         return $newProps;
     }
 
-    protected function parseRules($rules, $key, &$newProp, &$baseArr)
+    protected function parseRules($rules, $key, &$newProp, &$schema)
     {
         foreach ($rules as $rule) {
+            $rule = (string)$rule;
+            [$ruleStr, $ruleArgs] = ValidationRuleParser::parse($rule);
 
-            $ruleStringArray = explode(':', $rule);
-            [$ruleStr, $ruleArgStr] = [$ruleStringArray[0] ?? '', $ruleStringArray[1] ?? ''];
-            $ruleArgs = explode(',', $ruleArgStr ?? '');
-
-            switch ($ruleStr) {
+            switch (strtolower($ruleStr)) {
                 case 'nullable':
                     $newProp['nullable'] = true;
                     break;
@@ -153,7 +159,10 @@ trait RulesSchemaBuilder
                     $newProp['unique'] = true;
                     break;
                 case 'required':
-                    $baseArr['required'][] = $key;
+                    if ($this->required == Generator::UNDEFINED) {
+                        $this->required = [];
+                    }
+                    $this->required[] = $key;
                     break;
                 case 'object':
                     $newProp['type'] = 'object';
@@ -165,11 +174,6 @@ trait RulesSchemaBuilder
                     $newProp['format'] = $ruleStr;
                     break;
             }
-
-            match (true) {
-                ($rule instanceof Unique) => $newProp['unique'] = true,
-                default => '',
-            };
         }
     }
 
@@ -217,11 +221,6 @@ trait RulesSchemaBuilder
                 $props[] = $newProp;
             }
         }
-
-
-
         return $props;
     }
-
-
 }
