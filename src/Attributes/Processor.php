@@ -12,7 +12,7 @@ use OpenApi\Attributes as OA;
 use OpenApi\Generator;
 use OpenApi\Processors\ProcessorInterface;
 
-class Processor implements ProcessorInterface
+class Processor
 {
 
     public function __invoke(Analysis &$analysis): void

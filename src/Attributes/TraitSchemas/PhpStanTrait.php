@@ -61,6 +61,26 @@ trait PhpStanTrait
 
             $this->parseNode($paramTags[0], $this);
         }
+
+        foreach (['allOf', 'oneOf', 'anyOf'] as $prop) {
+            $this->deduplicate($this, $prop);
+        }
+    }
+
+    protected function deduplicate($schema, $property)
+    {
+        $p = [];
+        if ($schema->$property === Generator::UNDEFINED) {
+            return;
+        }
+
+        foreach ($schema->$property as $ofs) {
+            $p[] = json_encode($ofs);
+        }
+
+        if (count(array_unique($p)) <= 1) {
+            dd('THEY\'RE ALL THE SAME BATMAN');
+        }
     }
 
     protected function parseNode($data, Property|Schema|Items &$schema, $depth = 0)
@@ -97,7 +117,7 @@ trait PhpStanTrait
         } elseif ($data instanceof ObjectShapeItemNode || $data instanceof ArrayShapeItemNode) {
             $schema->property = $data->keyName?->name;
             $this->parseNode($data->valueType, $schema, $depth + 1);
-            $schema->x['optional'] = $data->optional;
+            //$schema->x['optional'] = $data->optional;
         } elseif ($data instanceof ConditionalTypeForParameterNode) {
             $oneOf = [];
             foreach (['if' => $data->if, 'else' => $data->else] as $when => $type) {
@@ -142,7 +162,7 @@ trait PhpStanTrait
             }
             foreach ($const as $k => $c) {
                 $_schema = new Schema(type: '', x: ['optional' => false]);
-                $this->translateClassnamesAndTypesToOpenApiSpec($k, $_schema);
+                $_schema->type = $this->translateClassnamesAndTypesToOpenApiSpec($k, $_schema);
                 if (count($c) > 1) {
                     $_schema->enum = $c;
                 } else {
@@ -150,7 +170,6 @@ trait PhpStanTrait
                 }
                 $oneOf[md5(json_encode($_schema))] = $_schema;
             }
-
             $oneOf = array_values($oneOf);
             if (count($oneOf) > 0) {
                 if (count($oneOf) > 1) {
@@ -240,7 +259,7 @@ trait PhpStanTrait
                 break;
         }
 
-        return match ($type) {
+        $return = match ($type) {
             ConstExprIntegerNode::class,
             'int' => 'integer',
             'double',
@@ -248,8 +267,18 @@ trait PhpStanTrait
             'true', 'false' => 'bool',
             ConstExprStringNode::class, 'non-empty-string' => 'string',
             'iterable' => 'array',
+            'bool' => 'boolean',
             default => $type
         };
+
+        switch ($return) {
+            case 'array':
+                if ($schema->items == Generator::UNDEFINED) {
+                    $schema->items = new Items();
+                }
+        }
+
+        return $return;
     }
 
     protected function isBasicType(string $type): bool

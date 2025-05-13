@@ -4,9 +4,9 @@ namespace Onekone\Lore\Attributes;
 
 use Attribute;
 use Onekone\Lore\Attributes\TraitSchemas\PhpStanTrait;
-use OpenApi\Attributes\{Parameter, Schema};
+use OpenApi\Attributes\{Schema};
 
-#[Attribute(\Attribute::TARGET_PARAMETER)]
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::TARGET_PROPERTY | Attribute::TARGET_PARAMETER | Attribute::IS_REPEATABLE)]
 class TypeHintArgumentSchema extends Schema
 {
     use PhpStanTrait;
@@ -31,8 +31,8 @@ class TypeHintArgumentSchema extends Schema
      */
     public function __construct(?string $class = null, ?string $method = null, ?string $argument = null, protected array $refs = [], string $schema = null)
     {
-        if (!$class || !$method || !$argument) {
-            return parent::__construct(schema: $schema ?: 'todo_'.md5(random_bytes(50)), x: []);
+        if (!$class && !$method && !$argument) {
+            return parent::__construct(schema: $schema ?: 'todo_' . md5(random_bytes(50)), x: ['__undefined_class__' => true]);
         }
 
        return $this->figureItOut($class,$method,$argument,$this->refs,$schema);
@@ -41,9 +41,14 @@ class TypeHintArgumentSchema extends Schema
     public function validate(array $stack = [], array $skip = [], string $ref = '', $context = null): bool
     {
         /** Since refs are still there, assuming that skipped out parsing this schema during initial run */
-        if (isset($this->refs)) {
-            $this->schema = preg_replace('[\W]','_', $this->_context->class .'@'. $this->_context->method .'_'. $this->_context->argument);
-            $this->figureItOut($this->_context->namespace . '\\' . $this->_context->class, $this->_context->method, $this->_context->argument, $this->refs, $this->schema);
+        if ($this->x['__undefined_class__'] ?? false) {
+            $c = $this->_context;
+
+            unset($this->x['__undefined_class__']);
+
+            $this->render($this->_context->reflection_method, $this->_context->argument);
+
+            $this->schema = implode('_', [$c->class, $c->method, $c->argument]);
         }
 
         return parent::validate($stack, $skip, $ref, $context);
@@ -60,10 +65,10 @@ class TypeHintArgumentSchema extends Schema
     protected function figureItOut(string $class = null, string $method = null, string $argument = null, array $refs = [], string $schema = null)
     {
         $reflectC = new \ReflectionClass($class);
-        $reflectM = $reflectC->getMethod($method);
+        $reflectM = $this?->_context->reflection_method ?: $reflectC->getMethod($method);
 
-        $this->render($reflectM->getDocComment(),$argument);
+        $this->render($reflectM, $argument);
 
-        unset($this->refs);
+        return $this;
     }
 }

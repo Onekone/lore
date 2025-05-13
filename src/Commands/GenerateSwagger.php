@@ -3,8 +3,8 @@
 namespace Onekone\Lore\Commands;
 
 use Illuminate\Console\Command;
-use OpenApi\Generator;
 use Onekone\Lore\Attributes\Processor;
+use OpenApi\Generator;
 
 class GenerateSwagger extends Command
 {
@@ -19,12 +19,10 @@ class GenerateSwagger extends Command
 
         error_reporting(0);
 
-        $generator->setProcessors([...$generator->getProcessors()]);
+        $generator->setProcessorPipeline($generator->getProcessorPipeline()->add(new Processor()));
 
         $p = $generator->generate([app_path()]);
-
         $json = $this->option('json');
-
         file_put_contents($this->argument('path') ?: 'swagger.yaml', $p->toYaml());
     }
 }
