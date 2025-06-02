@@ -3,12 +3,11 @@
 namespace Onekone\Lore\Attributes;
 
 use Attribute;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 use OpenApi\Attributes\Attachable;
 use OpenApi\Attributes\JsonContent;
 use OpenApi\Attributes\MediaType;
 use OpenApi\Attributes\XmlContent;
-use OpenApi\Generator;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 class LengthAwarePaginatorResponse extends OA\Response
@@ -37,12 +36,16 @@ class LengthAwarePaginatorResponse extends OA\Response
             );
         }
 
-        parent::__construct([
-            'ref' => $ref ?? Generator::UNDEFINED,
-            'response' => $response ?? Generator::UNDEFINED,
-            'description' => $description ?? Generator::UNDEFINED,
-            'x' => $x ?? Generator::UNDEFINED,
-            'value' => $this->combine($headers, $content, $links, $attachables),
-        ]);
+
+        parent::__construct(
+            ref: $ref,
+            response: $response,
+            description: $description,
+            headers: $headers,
+            content: $content,
+            links: $links,
+            x: $x,
+            attachables: $attachables
+        );
     }
 }

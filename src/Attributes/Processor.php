@@ -26,15 +26,15 @@ class Processor
         /** @var AbstractAnnotation[] $pathList */
         $pathList = [];
         foreach ($annotations as &$operation) {
-            $pathList[strtoupper($operation->method) . ' ' . $operation->path ] = &$operation;
+            $pathList[strtoupper($operation->method) . ' ' . $operation->path] = &$operation;
         }
 
         foreach (json_decode(Artisan::output()) as $route) {
             if ($route->action != 'Closure' && preg_match('/^api/m', $route->uri)) {
-                $oo = explode('|',str_replace('GET|HEAD','GET',$route->method))[0];
+                $oo = explode('|', str_replace('GET|HEAD', 'GET', $route->method))[0];
                 $key = $oo.' /'.$route->uri;
                 [$className,$classMethod] = explode('@',$route->action);
-                [$reflectClass, $reflectMethod] = [new \ReflectionClass($className),new \ReflectionMethod($className,$classMethod)];
+                [$reflectClass, $reflectMethod] = [new \ReflectionClass($className), new \ReflectionMethod($className, $classMethod)];
 
                 $poop = '\\OpenApi\\Attributes\\'.Str::ucfirst($oo);
 

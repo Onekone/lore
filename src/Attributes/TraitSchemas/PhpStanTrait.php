@@ -78,8 +78,14 @@ trait PhpStanTrait
             $p[] = json_encode($ofs);
         }
 
-        if (count(array_unique($p)) <= 1) {
-            dd('THEY\'RE ALL THE SAME BATMAN');
+        if (count(array_unique($p)) == 1) {
+            foreach ($schema->{$property}[0] as $key => $value) {
+                if ($schema->$key === Generator::UNDEFINED) {
+                    $schema->$key = $value;
+                }
+            }
+
+            $schema->$property = Generator::UNDEFINED;
         }
     }
 
