@@ -26,6 +26,13 @@
             "email": "alexs0929@gmail.com"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Onekone/swagger-php"
+        }
+    ],
+    "minimum-stability": "dev",
     "require-dev": {
         "phpunit/phpunit": "^12.1"
     }

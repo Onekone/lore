@@ -3,13 +3,13 @@
 namespace Onekone\Lore\Attributes;
 
 use Attribute;
+use Onekone\Lore\Attributes\TraitSchemas\PhpStanTrait;
 use OpenApi\Attributes\Schema;
-use Onekone\Lore\Attributes\TraitSchemas\ParsePsalmStringTrait;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class TypeHintSchema extends Schema
 {
-    use ParsePsalmStringTrait;
+    use PhpStanTrait;
 
     public $x = [];
 
@@ -28,7 +28,7 @@ class TypeHintSchema extends Schema
      * @return $this
      * @throws \ReflectionException
      */
-    public function __construct(string $class = null, string $method = null, protected array $refs = [], string $schema = null)
+    public function __construct(string $class = null, string $method = null, private array $refs = [], string $schema = null)
     {
         if (!$class && !$method) {
             return parent::__construct(schema: $schema ?: 'todo_'.md5(random_bytes(50)), x: []);
@@ -60,34 +60,11 @@ class TypeHintSchema extends Schema
         $reflectC = new \ReflectionClass($class);
         $reflectM = $reflectC->getMethod($method);
 
-        $returning = false;
-        $returnLine = '';
-        $x = null;
-
-        foreach (explode(PHP_EOL,$reflectM->getDocComment()) as $line) {
-            if ($returning && preg_match('/\* @\w*/m',$line)) {
-                $returning = false;
-            }
-            if (preg_match('/\* @return/m',$line)) {
-                $returning = true;
-            }
-            if ($returning) {
-                $returnLine .= ' '.trim(preg_replace('/^\s*\*\s*/m','',$line));
-            }
-        }
-
-        if (preg_match('/@return (?<typeline>.*\{.*\}) (?<summary>.*)/m',$returnLine,$matches)) {
-            $typeLine = $matches['typeline'] ?? '';
-            $summary = $matches['summary'] ?? '';
-
-            $typeLine = preg_replace('/ {2,}/',' ',$typeLine);
-
-            $x = $this->parsePhase1($typeLine);
-            $x = $this->parsePhase2($x);
-
-            $this->wrap($this,$x);
-        }
-
-        unset($this->refs);
+        $this->render($this->_context->reflection_method->getDocComment(),
+            'return',
+            fn($i) => true,
+            "/** \n /* @return {$reflectM->getType()} \n **/"
+        );
+        $this->schema = implode('_', [$class, $method]);
     }
 }

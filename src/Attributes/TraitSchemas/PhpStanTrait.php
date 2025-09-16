@@ -24,42 +24,36 @@ use PHPStan\PhpDocParser\Parser\{ConstExprParser, PhpDocParser, TokenIterator, T
 
 trait PhpStanTrait
 {
-    protected function render(\ReflectionMethod $reflectionMethod, $which)
+    protected function tokenizer($string)
     {
-        $string = $reflectionMethod->getDocComment();
         $lexer = new Lexer();
         $constExprParser = new ConstExprParser();
         $typeParser = new TypeParser($constExprParser);
         $phpDocParser = new PhpDocParser($typeParser, $constExprParser);
-
         $tokens = new TokenIterator($lexer->tokenize(trim($string)));
-
-        $pp = [];
-
         $phpDocNode = $phpDocParser->parse($tokens);
-        $paramTags = $phpDocNode->getParamTagValues();
+
+        return $phpDocNode;
+    }
+
+    protected function render(string $docBlock, string $tagName, callable $matching, string $unsetDocBlock)
+    {
+        $tagNode = $this->tokenizer($docBlock);
+        $tags = $tagNode->getTagsByName($tagName);
 
         $unset = true;
-        foreach ($paramTags as $k => $tag) {
-            if ($tag->parameterName == '$' . $which) {
+        foreach ($tags as $k => $tag) {
+            if ($matching($tag)) {
                 $unset = false;
                 $this->parseNode($tag, $this);
             }
         }
 
-        if ($unset) {
-            foreach ($reflectionMethod->getParameters() as $parameter) {
-                if ($which === $parameter->getName()) {
-                    $string = '/**' . PHP_EOL . '* @param ' . $parameter->getType() . ' $' . $parameter->getName() . PHP_EOL . '**/';
-                }
-            }
+        if ($unsetDocBlock && !$unset) {
+            $tagNode = $this->tokenizer($docBlock);
+            $tags = $tagNode->getTagsByName($tagName);
 
-            $tokens = new TokenIterator($lexer->tokenize(trim($string)));
-
-            $phpDocNode = $phpDocParser->parse($tokens);
-            $paramTags = $phpDocNode->getParamTagValues();
-
-            $this->parseNode($paramTags[0], $this);
+            $this->parseNode($tags[0], $this);
         }
 
         foreach (['allOf', 'oneOf', 'anyOf'] as $prop) {

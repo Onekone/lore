@@ -1,6 +1,6 @@
 <?php
 
-namespace Onekone\Lore\Attributes;
+namespace Onekone\Lore\Processors;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
@@ -10,7 +10,6 @@ use OpenApi\Annotations\AbstractAnnotation;
 use OpenApi\Annotations\Operation;
 use OpenApi\Attributes as OA;
 use OpenApi\Generator;
-use OpenApi\Processors\ProcessorInterface;
 
 class Processor
 {

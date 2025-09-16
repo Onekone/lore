@@ -3,7 +3,7 @@
 namespace Onekone\Lore\Commands;
 
 use Illuminate\Console\Command;
-use Onekone\Lore\Attributes\Processor;
+use Onekone\Lore\Processors\Processor;
 use OpenApi\Generator;
 
 class GenerateSwagger extends Command

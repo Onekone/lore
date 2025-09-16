@@ -53,7 +53,6 @@ class LengthAwarePaginatorJsonContent extends JsonContent
         ?array $anyOf = null,
         ?array $oneOf = null,
         AdditionalProperties|bool|null $additionalProperties = null,
-        mixed $const = Generator::UNDEFINED,
         // annotation
         ?array $x = null,
         ?array $attachables = null
@@ -99,7 +98,6 @@ class LengthAwarePaginatorJsonContent extends JsonContent
             minLength: $minLength,
             maxItems: $maxItems,
             minItems: $minItems,
-            const: $const,
             uniqueItems: $uniqueItems,
             pattern: $pattern,
             enum: $enum,
