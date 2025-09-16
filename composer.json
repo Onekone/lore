@@ -5,7 +5,7 @@
     "require": {
         "zircote/swagger-php": "^5",
         "php": ">=8.1",
-        "phpstan/phpdoc-parser": "^1",
+        "phpstan/phpdoc-parser": "^2",
         "laravel/framework": ">=10"
     },
     "autoload": {

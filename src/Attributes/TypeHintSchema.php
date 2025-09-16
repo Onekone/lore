@@ -61,10 +61,10 @@ class TypeHintSchema extends Schema
         $reflectM = $reflectC->getMethod($method);
 
         $this->render($this->_context->reflection_method->getDocComment(),
-            'return',
+            '@return',
             fn($i) => true,
-            "/** \n /* @return {$reflectM->getType()} \n **/"
+            "/** \n /* @return {$reflectM->getReturnType()} \n **/"
         );
-        $this->schema = implode('_', [$class, $method]);
+        $this->schema = implode('_', [array_reverse(explode('\\', $class))[0], $method]);
     }
 }
