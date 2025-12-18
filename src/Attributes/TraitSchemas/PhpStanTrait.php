@@ -21,15 +21,17 @@ use PHPStan\PhpDocParser\Ast\Type\{ArrayShapeItemNode,
     UnionTypeNode};
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\{ConstExprParser, PhpDocParser, TokenIterator, TypeParser};
+use PHPStan\PhpDocParser\ParserConfig;
 
 trait PhpStanTrait
 {
     protected function tokenizer($string)
     {
-        $lexer = new Lexer();
-        $constExprParser = new ConstExprParser();
-        $typeParser = new TypeParser($constExprParser);
-        $phpDocParser = new PhpDocParser($typeParser, $constExprParser);
+        $config = new ParserConfig(usedAttributes: []);
+        $lexer = new Lexer($config);
+        $constExprParser = new ConstExprParser($config);
+        $typeParser = new TypeParser($config, $constExprParser);
+        $phpDocParser = new PhpDocParser($config, $typeParser, $constExprParser);
         $tokens = new TokenIterator($lexer->tokenize(trim($string)));
         $phpDocNode = $phpDocParser->parse($tokens);
 

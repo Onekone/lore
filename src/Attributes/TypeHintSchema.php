@@ -57,8 +57,8 @@ class TypeHintSchema extends Schema
      */
     protected function figureItOut(string $class = null, string $method = null, array $refs = [], string $schema = null)
     {
-        $reflectC = new \ReflectionClass($class);
-        $reflectM = $reflectC->getMethod($method);
+        $reflectC = $this->_context->reflection_class;
+        $reflectM = $this->_context->reflection_method;
 
         $this->render($this->_context->reflection_method->getDocComment(),
             '@return',

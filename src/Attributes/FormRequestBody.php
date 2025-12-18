@@ -16,7 +16,7 @@ class FormRequestBody extends OA\RequestBody
     public function validate(array $stack = [], array $skip = [], string $ref = '', $context = null): bool
     {
         if (($this->x['__undefined_class__'] ?? false)) {
-            $ra = $this->_context->reflection_argument;
+            $ra = $this->_context->reflector;
 
 
             /** @var \ReflectionParameter $ra */
